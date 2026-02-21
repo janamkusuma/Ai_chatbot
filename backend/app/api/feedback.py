@@ -1,8 +1,10 @@
+# backend/app/api/feedback.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import Dict, Any
 import sqlite3, os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.auth import get_current_user
 
@@ -11,15 +13,14 @@ router = APIRouter(prefix="/api/feedback", tags=["Feedback"])
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # backend/app
 DB_PATH = os.path.join(BASE_DIR, "health.db")
 
+
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    # ✅ Always ensure correct schema (reset old broken table)
-    cur.execute("DROP TABLE IF EXISTS feedback")
-
+    # ✅ Create table if not exists (DO NOT DROP - it would delete history)
     cur.execute("""
-        CREATE TABLE feedback (
+        CREATE TABLE IF NOT EXISTS feedback (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_email TEXT,
             rating INTEGER,
@@ -32,10 +33,12 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 class FeedbackIn(BaseModel):
     rating: int
     category: str = "general"
     message: str
+
 
 @router.post("/submit")
 def submit_feedback(body: FeedbackIn, user=Depends(get_current_user)) -> Dict[str, Any]:
@@ -54,15 +57,24 @@ def submit_feedback(body: FeedbackIn, user=Depends(get_current_user)) -> Dict[st
     cur = conn.cursor()
     cur.execute(
         "INSERT INTO feedback (user_email, rating, category, message, created_at) VALUES (?,?,?,?,?)",
-        (email, int(body.rating), (body.category or "general"), msg, datetime.now().isoformat())
+        (
+            email,
+            int(body.rating),
+            (body.category or "general"),
+            msg,
+            datetime.now(timezone.utc).isoformat(),  # ✅ timezone-aware UTC
+        ),
     )
     conn.commit()
     conn.close()
 
     return {"ok": True, "message": "submitted"}
 
+
 @router.get("/my")
 def my_feedback(user=Depends(get_current_user)):
+    init_db()
+
     email = getattr(user, "email", None) or getattr(user, "username", "unknown")
     role = getattr(user, "role", "USER")
 
@@ -75,7 +87,7 @@ def my_feedback(user=Depends(get_current_user)):
     else:
         cur.execute(
             "SELECT * FROM feedback WHERE user_email=? ORDER BY id DESC",
-            (email,)
+            (email,),
         )
 
     rows = cur.fetchall()
