@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     GOOGLE_REDIRECT_URI: str
     FRONTEND_BASE_URL: str
     
+    ADMIN_EMAIL: str = ""
+    
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
