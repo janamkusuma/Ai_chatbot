@@ -1,12 +1,13 @@
 import { API_BASE } from "./api.js";
 
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("token") || localStorage.getItem("access_token");
 if (!token) location.href = "login.html";
 
 const headers = { Authorization: "Bearer " + token };
 
 document.getElementById("logoutBtn").onclick = () => {
   localStorage.removeItem("token");
+  localStorage.removeItem("access_token");
   location.href = "login.html";
 };
 
@@ -15,14 +16,16 @@ const emptyEl = document.getElementById("empty");
 
 function fmtDate(s) {
   try {
-    return new Date(s).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    if (!s) return "";
+    const hasTZ = /Z$|[+-]\d\d:\d\d$/.test(s);
+    const iso = hasTZ ? s : s + "Z";
+    return new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
   } catch {
     return s;
   }
 }
 
 async function load() {
-  // ✅ adjust this endpoint if your backend uses different path
   const res = await fetch(`${API_BASE}/api/quiz/my-scores`, { headers });
   const data = await res.json();
 
