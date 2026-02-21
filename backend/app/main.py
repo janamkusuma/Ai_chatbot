@@ -21,29 +21,74 @@ from app.api.admin import router as admin_router
 Base.metadata.create_all(bind=engine)
 from sqlalchemy import text
 
-# ✅ AUTO DB MIGRATION (timezone fix) - committed safely
-with engine.begin() as conn:
-    # feedback.created_at -> TIMESTAMPTZ + default now()
-    conn.execute(text("""
-        ALTER TABLE feedback
-        ALTER COLUMN created_at TYPE TIMESTAMPTZ
-        USING created_at AT TIME ZONE 'UTC';
-    """))
-    conn.execute(text("""
-        ALTER TABLE feedback
-        ALTER COLUMN created_at SET DEFAULT NOW();
-    """))
+def safe_migrations_and_promote_admin():
+    with engine.begin() as conn:
+        # -----------------------------
+        # ✅ Feedback created_at -> TIMESTAMPTZ (safe)
+        # -----------------------------
+        conn.execute(text("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_name='feedback'
+            ) THEN
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name='feedback' AND column_name='created_at'
+                ) THEN
+                    ALTER TABLE feedback
+                    ALTER COLUMN created_at TYPE TIMESTAMPTZ
+                    USING created_at AT TIME ZONE 'UTC';
 
-    # quiz_scores.created_at -> TIMESTAMPTZ + default now()
-    conn.execute(text("""
-        ALTER TABLE quiz_scores
-        ALTER COLUMN created_at TYPE TIMESTAMPTZ
-        USING created_at AT TIME ZONE 'UTC';
-    """))
-    conn.execute(text("""
-        ALTER TABLE quiz_scores
-        ALTER COLUMN created_at SET DEFAULT NOW();
-    """))
+                    ALTER TABLE feedback
+                    ALTER COLUMN created_at SET DEFAULT NOW();
+                END IF;
+            END IF;
+        END $$;
+        """))
+
+        # -----------------------------
+        # ✅ Quiz scores created_at -> TIMESTAMPTZ (safe)
+        # -----------------------------
+        conn.execute(text("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_name='quiz_scores'
+            ) THEN
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name='quiz_scores' AND column_name='created_at'
+                ) THEN
+                    ALTER TABLE quiz_scores
+                    ALTER COLUMN created_at TYPE TIMESTAMPTZ
+                    USING created_at AT TIME ZONE 'UTC';
+
+                    ALTER TABLE quiz_scores
+                    ALTER COLUMN created_at SET DEFAULT NOW();
+                END IF;
+            END IF;
+        END $$;
+        """))
+
+        # -----------------------------
+        # ✅ Promote ADMIN_EMAIL to ADMIN (safe)
+        # -----------------------------
+        admin_email = (getattr(settings, "ADMIN_EMAIL", "") or "").strip().lower()
+        if admin_email:
+            conn.execute(
+                text("""
+                    UPDATE users
+                    SET role='ADMIN'
+                    WHERE lower(email)=:e
+                """),
+                {"e": admin_email},
+            )
+
+# ✅ Run safe migrations + admin promote (after tables created)
+safe_migrations_and_promote_admin()
 # ✅ CREATE APP FIRST
 app = FastAPI(title="AI Health Assistant API")
 
