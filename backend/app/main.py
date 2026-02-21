@@ -19,7 +19,27 @@ from app.api.admin import router as admin_router
 
 # ✅ create tables
 Base.metadata.create_all(bind=engine)
+from sqlalchemy import text
 
+# ✅ AUTO DB MIGRATION (timezone fix)
+with engine.connect() as conn:
+    try:
+        conn.execute(text("""
+        ALTER TABLE feedback
+          ALTER COLUMN created_at TYPE TIMESTAMPTZ
+          USING created_at AT TIME ZONE 'UTC'
+        """))
+    except:
+        pass
+
+    try:
+        conn.execute(text("""
+        ALTER TABLE quiz_scores
+          ALTER COLUMN created_at TYPE TIMESTAMPTZ
+          USING created_at AT TIME ZONE 'UTC'
+        """))
+    except:
+        pass
 # ✅ CREATE APP FIRST
 app = FastAPI(title="AI Health Assistant API")
 
