@@ -18,17 +18,28 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    # ✅ Create table if not exists (DO NOT DROP - it would delete history)
+    # 1) ensure table exists (basic)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS feedback (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_email TEXT,
-            rating INTEGER,
-            category TEXT,
-            message TEXT,
-            created_at TEXT
+            id INTEGER PRIMARY KEY AUTOINCREMENT
         )
     """)
+
+    # 2) read existing columns
+    cur.execute("PRAGMA table_info(feedback)")
+    cols = {row[1] for row in cur.fetchall()}  # column names
+
+    # 3) add missing columns safely
+    if "user_email" not in cols:
+        cur.execute("ALTER TABLE feedback ADD COLUMN user_email TEXT")
+    if "rating" not in cols:
+        cur.execute("ALTER TABLE feedback ADD COLUMN rating INTEGER")
+    if "category" not in cols:
+        cur.execute("ALTER TABLE feedback ADD COLUMN category TEXT")
+    if "message" not in cols:
+        cur.execute("ALTER TABLE feedback ADD COLUMN message TEXT")
+    if "created_at" not in cols:
+        cur.execute("ALTER TABLE feedback ADD COLUMN created_at TEXT")
 
     conn.commit()
     conn.close()
