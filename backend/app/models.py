@@ -89,7 +89,9 @@ class Feedback(Base):
     rating = Column(Integer, nullable=False)
     category = Column(String(50), default="general")
     message = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # ✅ Postgres TIMESTAMPTZ + DB default UTC now
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
 class QuizScore(Base):
@@ -99,7 +101,9 @@ class QuizScore(Base):
     user_email = Column(String(150), index=True, nullable=False)
     score = Column(Integer, nullable=False)
     total = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # ✅ Postgres TIMESTAMPTZ + DB default UTC now
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 class PasswordReset(Base):
     __tablename__ = "password_resets"
