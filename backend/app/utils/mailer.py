@@ -11,10 +11,7 @@ def send_email(to_email: str, subject: str, body_text: str):
         raise RuntimeError("RESEND_API_KEY not set")
 
     payload = {
-        "from": from_addr,
-        "to": [to_email],
-        "subject": subject,
-        "text": body_text,
+        "from": from_addr if "<" in from_addr else f"HealthBot AI <{from_addr}>",
     }
 
     response = requests.post(
