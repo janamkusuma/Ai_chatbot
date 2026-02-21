@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
-
+from app.models import Feedback
+from app.models import QuizScore  # ⚠️ if your model name differs, change here
 from app.database import get_db
 from app.models import User, Chat, Message
 from app.auth import require_admin
@@ -107,39 +108,31 @@ def admin_stats(db: Session = Depends(get_db), admin: User = Depends(require_adm
         "total_messages": total_messages,
     }
 
-
 # -----------------------
-# Admin: Quiz History (All Users)  ✅ INCLUDE id
+# Admin: Quiz History (All Users)
 # -----------------------
 @router.get("/quiz-history")
-def all_quiz_history(admin: User = Depends(require_admin)):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    try:
-        cur.execute("""
-            SELECT id, user_email, score, total, created_at
-            FROM quiz_scores
-            ORDER BY id DESC
-            LIMIT 500
-        """)
-        rows = [dict(r) for r in cur.fetchall()]
-    except sqlite3.OperationalError:
-        rows = []
-    conn.close()
-    return rows
+def all_quiz_history(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    rows = db.query(QuizScore).order_by(QuizScore.id.desc()).limit(500).all()
+    return [
+        {
+            "id": r.id,
+            "user_email": getattr(r, "user_email", None),
+            "score": getattr(r, "score", None),
+            "total": getattr(r, "total", None),
+            "created_at": r.created_at.isoformat() if getattr(r, "created_at", None) else None,
+        }
+        for r in rows
+    ]
 
 
-# -----------------------
-# Admin: Quiz Delete ✅
-# -----------------------
 @router.delete("/quiz-history/{row_id}")
-def delete_quiz_row(row_id: int, admin: User = Depends(require_admin)):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("DELETE FROM quiz_scores WHERE id = ?", (row_id,))
-    conn.commit()
-    conn.close()
+def delete_quiz_row(row_id: int, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    r = db.query(QuizScore).filter(QuizScore.id == row_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Quiz row not found")
+    db.delete(r)
+    db.commit()
     return {"ok": True, "message": "Quiz deleted"}
 
 
@@ -147,52 +140,52 @@ def delete_quiz_row(row_id: int, admin: User = Depends(require_admin)):
 # Admin: Feedback History (All Users)
 # -----------------------
 @router.get("/feedback-history")
-def all_feedback_history(admin: User = Depends(require_admin)):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    try:
-        cur.execute("""
-            SELECT id, user_email, rating, category, message, created_at
-            FROM feedback
-            ORDER BY id DESC
-            LIMIT 500
-        """)
-        rows = [dict(r) for r in cur.fetchall()]
-    except sqlite3.OperationalError:
-        rows = []
-    conn.close()
-    return rows
+def all_feedback_history(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    rows = db.query(Feedback).order_by(Feedback.id.desc()).limit(500).all()
+    return [
+        {
+            "id": r.id,
+            "user_email": getattr(r, "user_email", None),
+            "rating": getattr(r, "rating", None),
+            "category": getattr(r, "category", None),
+            "message": getattr(r, "message", None),
+            "created_at": r.created_at.isoformat() if getattr(r, "created_at", None) else None,
+        }
+        for r in rows
+    ]
 
 
-# -----------------------
-# Admin: Feedback Update + Delete ✅
-# -----------------------
 class FeedbackUpdate(BaseModel):
     rating: int
     category: str
     message: str
 
+
 @router.patch("/feedback-history/{row_id}")
-def update_feedback_row(row_id: int, data: FeedbackUpdate, admin: User = Depends(require_admin)):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE feedback SET rating=?, category=?, message=? WHERE id=?",
-        (data.rating, data.category, data.message, row_id),
-    )
-    conn.commit()
-    conn.close()
+def update_feedback_row(row_id: int, data: FeedbackUpdate, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    r = db.query(Feedback).filter(Feedback.id == row_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Feedback row not found")
+
+    r.rating = data.rating
+    r.category = data.category
+    r.message = data.message
+    db.commit()
+    db.refresh(r)
     return {"ok": True, "message": "Feedback updated"}
 
+
 @router.delete("/feedback-history/{row_id}")
-def delete_feedback_row(row_id: int, admin: User = Depends(require_admin)):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("DELETE FROM feedback WHERE id = ?", (row_id,))
-    conn.commit()
-    conn.close()
+def delete_feedback_row(row_id: int, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    r = db.query(Feedback).filter(Feedback.id == row_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Feedback row not found")
+    db.delete(r)
+    db.commit()
     return {"ok": True, "message": "Feedback deleted"}
+
+    
+
 
 
 # -----------------------
