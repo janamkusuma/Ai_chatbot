@@ -30,6 +30,7 @@ app.add_middleware(
         "http://127.0.0.1:5500",
         "http://localhost:5500",
         "https://aihealth-assistant-finalbot.vercel.app",
+        "https://ai-chatbot-five-sandy-46.vercel.app",
         settings.FRONTEND_BASE_URL,
     ])),
     allow_credentials=True,
@@ -41,8 +42,8 @@ app.add_middleware(
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.JWT_SECRET,
-    same_site="lax",
-    https_only=False
+    same_site="none",
+    https_only=True,
 )
 
 # ✅ INCLUDE ROUTERS AFTER app CREATED
