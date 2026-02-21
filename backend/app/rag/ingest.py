@@ -1,18 +1,19 @@
 # app/rag/ingest.py
 
 import os
+from typing import List, Optional, Dict, Any
 
 from app.config import settings
 from app.rag.vectorstore import upsert_document_to_namespace
 
-# Allowed file types
 ALLOWED = {".pdf", ".txt", ".md"}
 
 
-def ingest_folder_to_pinecone():
+def ingest_folder_to_pinecone(file_list: Optional[List[str]] = None) -> Dict[str, Any]:
     """
-    Reads DATA_DIR folder → chunks → embeddings → Pinecone namespace.
-    Safe version (no crash, clear logs).
+    ✅ Smart ingest supported:
+    - If file_list is provided → ingest ONLY those files from DATA_DIR
+    - Returns structured result for UI
     """
     print("\n🚀 Starting Pinecone ingest...")
 
@@ -21,47 +22,62 @@ def ingest_folder_to_pinecone():
 
     # -------- Checks --------
     if not folder:
-        print("⚠️ DATA_DIR not set in .env")
-        return
+        return {"ok": False, "error": "DATA_DIR not set in .env"}
 
     if not os.path.exists(folder):
-        print(f"⚠️ Folder not found: {folder}")
-        return
+        return {"ok": False, "error": f"Folder not found: {folder}"}
 
     if getattr(settings, "VECTOR_BACKEND", "").lower() != "pinecone":
-        print("ℹ️ VECTOR_BACKEND not pinecone → skipping ingest")
-        return
+        return {"ok": True, "message": "VECTOR_BACKEND not pinecone -> skipping ingest", "processed": 0, "skipped": 0, "processed_files": []}
 
     if not getattr(settings, "PINECONE_API_KEY", ""):
-        print("⚠️ Pinecone API key missing")
-        return
+        return {"ok": False, "error": "Pinecone API key missing"}
 
     print(f"📂 DATA_DIR = {folder}")
     print(f"📌 Namespace = {namespace}")
 
-    count = 0
-    skipped = 0
+    processed_files: List[str] = []
+    skipped_files: List[str] = []
+    failed_files: List[Dict[str, str]] = []
 
-    # -------- Index files --------
+    # Normalize file_list (if given)
+    wanted = None
+    if file_list:
+        wanted = set([os.path.basename(x) for x in file_list])
+
     for root, _, files in os.walk(folder):
         for fn in files:
-            ext = os.path.splitext(fn)[1].lower()
+            base = os.path.basename(fn)
+            ext = os.path.splitext(base)[1].lower()
+
             if ext not in ALLOWED:
-                skipped += 1
+                skipped_files.append(base)
+                continue
+
+            # If smart list given, skip others
+            if wanted is not None and base not in wanted:
                 continue
 
             path = os.path.join(root, fn)
             try:
-                print(f"➡️ Processing: {fn}")
+                print(f"➡️ Processing: {base}")
                 upsert_document_to_namespace(namespace=namespace, filepath=path)
-                count += 1
-                print(f"✅ Indexed: {fn}")
+                processed_files.append(base)
+                print(f"✅ Indexed: {base}")
             except Exception as e:
-                print(f"❌ Failed: {fn}")
-                print(" Error:", e)
+                print(f"❌ Failed: {base} | Error: {e}")
+                failed_files.append({"file": base, "error": str(e)})
 
-    # -------- Final log --------
-    print("\n🎉 Ingest complete")
-    print(f" Indexed files : {count}")
-    print(f" Skipped files : {skipped}")
-    print(f" Namespace : {namespace}")
+    msg = "Ingest complete"
+    if wanted is not None and len(processed_files) == 0 and len(failed_files) == 0:
+        msg = "No matching files found to ingest"
+
+    return {
+        "ok": True if len(failed_files) == 0 else False,
+        "message": msg,
+        "namespace": namespace,
+        "processed": len(processed_files),
+        "skipped": len(skipped_files),
+        "processed_files": processed_files,
+        "failed": failed_files,
+    }

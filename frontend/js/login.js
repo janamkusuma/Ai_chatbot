@@ -1,4 +1,4 @@
-const BASE_URL = "https://ai-health-backend-4e0i.onrender.com";
+const BASE_URL = "http://127.0.0.1:8000";
 
 // ✅ If google callback sends token in URL, store and go home
 (function handleGoogleToken() {
@@ -46,11 +46,16 @@ export async function login() {
     }
 
     localStorage.setItem("token", data.access_token);
+
+    // ✅ Always open index.html
     window.location.href = "index.html";
+
   } catch (e) {
     err.textContent = "Server error. Try again.";
   }
 }
+
+
 
 window.login = login;
 

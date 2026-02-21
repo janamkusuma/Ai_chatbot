@@ -1,1 +1,1 @@
-export const API_BASE = "https://ai-health-backend-4e0i.onrender.com";
+export const API_BASE = "http://127.0.0.1:8000";

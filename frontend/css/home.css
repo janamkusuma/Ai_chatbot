@@ -113,7 +113,7 @@ body{
   overflow:visible;
 }
 .bot-img{
-  width:50%;
+  width:60%;
   height:150%;
   max-width:420px;
   filter: drop-shadow(0 18px 40px rgba(0,0,0,.25));
@@ -138,7 +138,7 @@ body{
 /* feature strip white card (like screenshot) */
 .feature-strip{
   width: calc(100% - 90px);
-  margin: -46px auto 0 auto;   /* overlap hero like image */
+  margin: -26px auto 0 auto;   /* overlap hero like image */
   background:#fff;
   border:1px solid #e9eef6;
   border-radius:22px;
@@ -278,7 +278,7 @@ body{
 .tips-track{
   display:flex;
   width:max-content;
-  animation: scrollTips 15s linear infinite;
+  animation: scrollTips 13s linear infinite;
 }
 
 .tips-content{

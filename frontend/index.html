@@ -52,10 +52,12 @@
         <a href="symptom_checker.html" class="menu-link">Symptom Checker</a>
         <a href="disease.html" class="menu-link">Disease Awareness</a>
         <a href="quiz.html" class="menu-link">Quiz</a>
-
         <a href="reports.html" class="menu-link">Reports & Analysis</a>
         <a href="faq.html" class="menu-link">FAQ</a>
         <a href="feedback.html" class="menu-link">Feedback</a>
+
+        <!-- ✅ Admin link hidden by default, shown only for ADMIN -->
+        <a href="admin.html" class="menu-link" id="adminLink" style="display:none;">Admin</a>
       </nav>
 
       <!-- Logged out -->
@@ -86,19 +88,16 @@
   </header>
 
   <!-- ✅ Health Tips Scrolling Bar -->
-  <!-- Health Tips Scrolling -->
   <div class="tips-bar">
-  <div class="tips-track">
-    <div class="tips-content">
-      💡 Health Tip: Drink enough water • Eat fruits & vegetables • Walk daily • Sleep 7–8 hours • Wash hands regularly • Consult doctor if symptoms persist •
-    </div>
-    <div class="tips-content">
-      💡 Health Tip: Drink enough water • Eat fruits & vegetables • Walk daily • Sleep 7–8 hours • Wash hands regularly • Consult doctor if symptoms persist •
+    <div class="tips-track">
+      <div class="tips-content">
+        💡 Health Tip: Drink enough water • Eat fruits & vegetables • Walk daily • Sleep 7–8 hours • Wash hands regularly • Consult doctor if symptoms persist •
+      </div>
+      <div class="tips-content">
+        💡 Health Tip: Drink enough water • Eat fruits & vegetables • Walk daily • Sleep 7–8 hours • Wash hands regularly • Consult doctor if symptoms persist •
+      </div>
     </div>
   </div>
-</div>
-
-
 
   <main class="page">
     <!-- HERO -->
@@ -114,9 +113,8 @@
         <div class="hero-actions">
           <button class="btn-primary" id="startChatBtn">Start Chatting</button>
 
-          <!-- ✅ Replace this link later with your YouTube video -->
           <a class="btn-ghost" id="watchDemoBtn"
-             href="https://www.youtube.com/"
+             href="https://www.youtube.com/watch?v=sIWWc8r3Ijo"
              target="_blank" rel="noreferrer">
             ▶ Watch Demo
           </a>
@@ -248,6 +246,10 @@
     </div>
   </footer>
 
-  <script type="module" src="js/index.js"></script>
+  <!-- Your existing index logic -->
+  <script  src="js/index.js"></script>
+
+  <!-- ✅ Admin link show only for ADMIN -->
+  
 </body>
 </html>

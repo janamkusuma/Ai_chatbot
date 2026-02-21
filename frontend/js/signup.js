@@ -1,4 +1,4 @@
-const BASE_URL = "https://ai-health-backend-4e0i.onrender.com";
+const BASE_URL = "http://127.0.0.1:8000";
 
 export async function signup() {
   const full_name = document.getElementById("full_name").value.trim();

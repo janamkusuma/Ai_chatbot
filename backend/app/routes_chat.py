@@ -282,7 +282,7 @@ async def send_message(
         bot_text = (
             "⚠️ I am a medical awareness assistant.\n"
             "Ask health/medicine questions.\n"
-            "If you uploaded a file, ask: 'Explain this pdf' / 'What medicine is in this image?'"
+            
         )
         db.add(Message(chat_id=chat_id, role="assistant", content=bot_text, created_at=datetime.utcnow()))
         chat.updated_at = datetime.utcnow()

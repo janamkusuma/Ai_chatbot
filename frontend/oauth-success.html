@@ -13,12 +13,11 @@
 
     if (token) {
       localStorage.setItem("token", token);
-
-      // Go to dashboard/home page
-      window.location.href = "index.html";
+      localStorage.setItem("access_token", token);
+      window.location.href = "/frontend/index.html";
     } else {
       alert("Login failed");
-      window.location.href = "login.html";
+      window.location.href = "/frontend/login.html";
     }
   </script>
 </body>

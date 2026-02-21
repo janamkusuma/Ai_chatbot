@@ -41,14 +41,36 @@ def _fixed_reason(name: str) -> str:
 
 @router.post("/analyze")
 def analyze(body: SymptomIn, user=Depends(get_current_user)) -> Dict[str, Any]:
-    selected = [s.strip().lower() for s in (body.symptoms or []) if s and s.strip()]
+    # ✅ NEW: normalize / alias (frontend lo different words unte match correct avvali)
+    alias = {
+        "high fever": "fever",
+        "severe headache": "headache",
+        "dry cough": "cough",
+        "productive cough": "cough",
+        "shortness of breath": "breathing difficulty",
+        "chest tightness": "chest pain",   # optional
+        "skin rash": "rash",
+        "body aches": "body pain",
+        "muscle pain": "body pain",
+        "joint pain": "body pain",
+        "sleepiness": "fatigue",
+        "nasal congestion": "cold",
+        "runny nose": "cold",
+        "loss of smell": "loss of taste",  # optional (if you don’t have smell in data)
+    }
+
+    selected = [
+        alias.get(s.strip().lower(), s.strip().lower())
+        for s in (body.symptoms or [])
+        if s and s.strip()
+    ]
     selected_set = set(selected)
 
     results = []
 
     for d in DISEASES:
-        all_sym = set([str(x).strip().lower() for x in d.get("symptoms", []) if x])
-        key_sym = set([str(x).strip().lower() for x in d.get("key_symptoms", []) if x])
+        all_sym = set([alias.get(str(x).strip().lower(), str(x).strip().lower()) for x in d.get("symptoms", []) if x])
+        key_sym = set([alias.get(str(x).strip().lower(), str(x).strip().lower()) for x in d.get("key_symptoms", []) if x])
 
         matched_all = sorted(list(selected_set.intersection(all_sym)))
         if not matched_all:

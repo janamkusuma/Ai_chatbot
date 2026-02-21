@@ -14,8 +14,26 @@ document.getElementById("logoutBtn").onclick = () => {
 };
 
 const SYMPTOMS = [
-  "fever", "cough", "cold", "headache", "fatigue", "nausea",
-  "body pain", "vomiting", "dizziness"
+  "Fever",
+  "Headache",
+  "Cough",
+  "Sore throat",
+  "Runny nose",
+  "Body pain",
+  "Fatigue",
+  "Dizziness",
+  "Shortness of breath",
+  "Chest pain",
+  "Nausea",
+  "Vomiting",
+  "Diarrhea",
+  "Stomach pain",
+  "Loss of appetite",
+  "Joint pain",
+  "Muscle pain",
+  "Skin rash",
+  "Leg swelling",
+  "Sleepiness"
 ];
 
 const chipsEl = document.getElementById("chips");

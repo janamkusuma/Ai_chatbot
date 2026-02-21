@@ -20,32 +20,51 @@ def quiz_conn():
 
 @router.get("/summary")
 def reports_summary(user=Depends(get_current_user), db: Session = Depends(get_db)):
-    # user email
     email = getattr(user, "email", None) or getattr(user, "username", None) or "unknown"
+    role = getattr(user, "role", "USER")
 
-    # -------- Quiz stats from sqlite --------
     conn = quiz_conn()
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) as c FROM quiz_scores WHERE user_email=?", (email,))
-    quiz_attempts = cur.fetchone()["c"]
 
-    cur.execute("SELECT AVG(CAST(score as float) / NULLIF(total,0)) as avgp FROM quiz_scores WHERE user_email=?", (email,))
-    avgp = cur.fetchone()["avgp"]
-    avg_percent = round((avgp or 0) * 100, 2)
+    # ✅ ADMIN -> all users
+    if role == "ADMIN":
+        cur.execute("SELECT COUNT(*) as c FROM quiz_scores")
+        quiz_attempts = cur.fetchone()["c"]
 
-    # last 10 quiz rows
-    cur.execute("""
-        SELECT score, total, created_at
-        FROM quiz_scores
-        WHERE user_email=?
-        ORDER BY id DESC
-        LIMIT 10
-    """, (email,))
-    last10 = cur.fetchall()
+        cur.execute("SELECT AVG(CAST(score as float) / NULLIF(total,0)) as avgp FROM quiz_scores")
+        avgp = cur.fetchone()["avgp"]
+
+        cur.execute("""
+            SELECT score, total, created_at
+            FROM quiz_scores
+            ORDER BY id DESC
+            LIMIT 10
+        """)
+        last10 = cur.fetchall()
+
+    # ✅ USER -> only own
+    else:
+        cur.execute("SELECT COUNT(*) as c FROM quiz_scores WHERE user_email=?", (email,))
+        quiz_attempts = cur.fetchone()["c"]
+
+        cur.execute("SELECT AVG(CAST(score as float) / NULLIF(total,0)) as avgp FROM quiz_scores WHERE user_email=?", (email,))
+        avgp = cur.fetchone()["avgp"]
+
+        cur.execute("""
+            SELECT score, total, created_at
+            FROM quiz_scores
+            WHERE user_email=?
+            ORDER BY id DESC
+            LIMIT 10
+        """, (email,))
+        last10 = cur.fetchall()
+
     conn.close()
 
+    avg_percent = round(((avgp or 0) * 100), 2)
+
     quiz_last10 = []
-    for r in reversed(last10):  # older -> newer for chart
+    for r in reversed(last10):
         total = r["total"] or 0
         pct = (r["score"] / total * 100) if total else 0
         quiz_last10.append({
@@ -54,6 +73,10 @@ def reports_summary(user=Depends(get_current_user), db: Session = Depends(get_db
             "total": total,
             "percent": round(pct, 2),
         })
+
+    # ---- chat stats (keep your existing code below unchanged) ----
+    ...
+
 
     # -------- Chat stats from SQLAlchemy --------
     total_chats = db.query(Chat).filter(Chat.user_id == user.id).count()

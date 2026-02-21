@@ -10,6 +10,14 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI: str
     FRONTEND_BASE_URL: str
+    
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASS: str = ""
+    SMTP_FROM: str = "HealthBot AI <no-reply@example.com>"
+
+    RESET_OTP_EXPIRE_MINUTES: int = 10
 
     # ✅ OpenRouter
     OPENROUTER_API_KEY: str = ""

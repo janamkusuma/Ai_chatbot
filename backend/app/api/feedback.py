@@ -57,26 +57,23 @@ def submit_feedback(body: FeedbackIn, user=Depends(get_current_user)) -> Dict[st
     return {"ok": True, "message": "submitted"}
 
 @router.get("/my")
-def my_feedback(user=Depends(get_current_user)) -> List[Dict[str, Any]]:
-    init_db()
-
-    email = getattr(user, "email", None) or getattr(user, "username", None) or "unknown"
+def my_feedback(user=Depends(get_current_user)):
+    email = getattr(user, "email", None) or getattr(user, "username", "unknown")
+    role = getattr(user, "role", "USER")
 
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute(
-        "SELECT rating, category, message, created_at FROM feedback WHERE user_email=? ORDER BY id DESC",
-        (email,)
-    )
+
+    if role == "ADMIN":
+        cur.execute("SELECT * FROM feedback ORDER BY id DESC")
+    else:
+        cur.execute(
+            "SELECT * FROM feedback WHERE user_email=? ORDER BY id DESC",
+            (email,)
+        )
+
     rows = cur.fetchall()
     conn.close()
 
-    return [
-        {
-            "rating": r["rating"],
-            "category": r["category"],
-            "message": r["message"],
-            "created_at": r["created_at"],
-        } for r in rows
-    ]
+    return [dict(r) for r in rows]

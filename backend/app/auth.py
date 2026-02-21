@@ -1,7 +1,5 @@
 # app/auth.py
 import bcrypt
-
-#from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi import HTTPException, Depends
@@ -12,7 +10,6 @@ from app.config import settings
 from app.database import get_db
 from app.models import User
 
-#pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
@@ -22,11 +19,12 @@ def hash_password(password: str) -> str:
         pw = pw[:72]
     return bcrypt.hashpw(pw, bcrypt.gensalt()).decode("utf-8")
 
+
 def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 
-
+# ✅ include role in payload when creating token
 def create_access_token(payload: dict):
     data = payload.copy()
     data["exp"] = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -53,4 +51,16 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
+    # ✅ if admin blocked user
+    if hasattr(user, "is_active") and user.is_active is False:
+        raise HTTPException(status_code=403, detail="User is blocked by admin")
+
+    return user
+
+
+# ✅ Admin-only dependency
+def require_admin(user: User = Depends(get_current_user)) -> User:
+    role = getattr(user, "role", "USER")
+    if role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Admin access required")
     return user

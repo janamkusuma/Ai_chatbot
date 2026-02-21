@@ -59,24 +59,29 @@ def save_quiz_score(body: QuizSaveIn, user=Depends(get_current_user)) -> Dict[st
 
 
 @router.get("/my-scores")
-def my_scores(user=Depends(get_current_user)) -> List[Dict[str, Any]]:
+def my_scores(user=Depends(get_current_user)):
     init_db()
 
-    email = None
-    if isinstance(user, dict):
-        email = user.get("email") or user.get("username")
-    else:
-        email = getattr(user, "email", None) or getattr(user, "username", None) or "unknown"
+    # Get email safely
+    email = getattr(user, "email", None) or getattr(user, "username", "unknown")
+    role = getattr(user, "role", "USER")
 
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
-    cur.execute(
-        "SELECT score, total, created_at FROM quiz_scores WHERE user_email=? ORDER BY id DESC",
-        (email,)
-    )
+    # ADMIN → all quiz history
+    if role == "ADMIN":
+        cur.execute(
+            "SELECT user_email, score, total, created_at FROM quiz_scores ORDER BY id DESC"
+        )
+    else:
+        cur.execute(
+            "SELECT score, total, created_at FROM quiz_scores WHERE user_email=? ORDER BY id DESC",
+            (email,)
+        )
+
     rows = cur.fetchall()
     conn.close()
 
-    return [{"score": r["score"], "total": r["total"], "created_at": r["created_at"]} for r in rows]
+    return [dict(r) for r in rows]

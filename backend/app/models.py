@@ -1,9 +1,9 @@
 # app/models.py
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
-
+from sqlalchemy.sql import func
 from app.database import Base
 
 
@@ -14,6 +14,14 @@ class User(Base):
     full_name = Column(String(150))
     email = Column(String(150), unique=True, index=True, nullable=False)
     password = Column(String(255), nullable=False)
+
+    # ✅ NEW: Role-based access
+    role = Column(String(20), default="USER", nullable=False)   # USER / ADMIN
+
+    # ✅ NEW: Block/Unblock support
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     chats = relationship("Chat", back_populates="user", cascade="all, delete")
 
@@ -58,3 +66,34 @@ class Document(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     chat = relationship("Chat", back_populates="documents")
+class Disease(Base):
+    __tablename__ = "diseases"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150))
+    category = Column(String(50))
+    symptoms = Column(Text)
+    prevention = Column(Text)
+    overview = Column(Text)
+    image = Column(String(300))
+class FAQ(Base):
+    __tablename__ = "faqs"
+    id = Column(Integer, primary_key=True)
+    question = Column(String(300))
+    answer = Column(Text)
+class Feedback(Base):
+    __tablename__ = "feedback"
+    id = Column(Integer, primary_key=True)
+    email = Column(String(150))
+    message = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True, nullable=False)
+    otp_hash = Column(String, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
