@@ -19,19 +19,18 @@ class FeedbackIn(BaseModel):
     category: str = "general"
     message: str
 
-
 def migrate_feedback_table(db: Session):
-    """
-    One-time safe migration for Postgres:
-    Adds missing columns without deleting data.
-    (Works even if table already exists with old schema)
-    """
     db.execute(text("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS user_email VARCHAR"))
     db.execute(text("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS rating INTEGER"))
     db.execute(text("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS category VARCHAR"))
     db.execute(text("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS message TEXT"))
-    db.execute(text("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS created_at TIMESTAMP"))
+
+    # ✅ created_at must be TIMESTAMPTZ (not TIMESTAMP)
+    db.execute(text("ALTER TABLE feedback ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ"))
+    db.execute(text("ALTER TABLE feedback ALTER COLUMN created_at SET DEFAULT NOW()"))
+
     db.commit()
+
 
 
 @router.post("/submit")
