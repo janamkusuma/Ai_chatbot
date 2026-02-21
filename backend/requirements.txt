@@ -25,3 +25,4 @@ numpy
 pandas
 scikit-learn
 requests
+psycopg[binary]
