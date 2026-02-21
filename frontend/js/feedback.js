@@ -18,7 +18,11 @@ const emptyEl = document.getElementById("empty");
 function showMsg(t) { msgEl.textContent = t || ""; }
 
 function fmtDate(s) {
-  try { return new Date(s).toLocaleString(); } catch { return s; }
+  try {
+    return new Date(s).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  } catch {
+    return s;
+  }
 }
 
 async function loadMyFeedback() {

@@ -15,7 +15,7 @@ const emptyEl = document.getElementById("empty");
 
 function fmtDate(s) {
   try {
-    return new Date(s).toLocaleString();
+    return new Date(s).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
   } catch {
     return s;
   }
