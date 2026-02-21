@@ -14,6 +14,8 @@ DB_PATH = os.path.join(BASE_DIR, "health.db")
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
+
+    # create table if not exists
     cur.execute("""
         CREATE TABLE IF NOT EXISTS feedback (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +26,14 @@ def init_db():
             created_at TEXT
         )
     """)
+
+    # ✅ migration: add user_email column if old table doesn't have it
+    cur.execute("PRAGMA table_info(feedback)")
+    cols = [r[1] for r in cur.fetchall()]  # column names
+
+    if "user_email" not in cols:
+        cur.execute("ALTER TABLE feedback ADD COLUMN user_email TEXT")
+
     conn.commit()
     conn.close()
 
