@@ -1,5 +1,5 @@
 // frontend/js/admin.js
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://ai-chatbot-0r5n.onrender.com";
 
 // stats
 const statUsers = document.getElementById("statUsers");

@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://ai-chatbot-0r5n.onrender.com";
 
 // ✅ If google callback sends token in URL, store and go home
 (function handleGoogleToken() {

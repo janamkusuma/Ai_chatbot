@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000"; // optional if you call api later
+const BASE_URL = "https://ai-chatbot-0r5n.onrender.com"; // optional if you call api later
 
 function getToken() {
   return localStorage.getItem("token") || localStorage.getItem("access_token");
