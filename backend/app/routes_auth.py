@@ -52,11 +52,14 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     if len(user.password.encode("utf-8")) > 72:
         raise HTTPException(status_code=400, detail="Password too long (max 72 characters)")
 
+    admin_email = (getattr(settings, "ADMIN_EMAIL", "") or "").strip().lower()
+    role = "ADMIN" if user.email.strip().lower() == admin_email and admin_email else "USER"
+
     new_user = User(
         full_name=user.full_name,
-        email=user.email,
+        email=user.email.strip().lower(),
         password=hash_password(user.password),
-        role="USER",
+        role=role,
         is_active=True,
     )
     try:
@@ -245,11 +248,14 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
     # Upsert user
     db_user = db.query(User).filter(User.email == email).first()
     if not db_user:
+        admin_email = (getattr(settings, "ADMIN_EMAIL", "") or "").strip().lower()
+        role = "ADMIN" if email.strip().lower() == admin_email and admin_email else "USER"
+
         db_user = User(
             full_name=name,
-            email=email,
+            email=email.strip().lower(),
             password=hash_password(email),
-            role="USER",
+            role=role,
             is_active=True,
         )
         db.add(db_user)
