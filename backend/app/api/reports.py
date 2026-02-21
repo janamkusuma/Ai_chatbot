@@ -1,100 +1,84 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func, cast, Float
 from datetime import datetime, timedelta
-import sqlite3, os
+import os, json
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import Chat, Message
+from app.models import Chat, Message, QuizScore  # ✅ use SQLAlchemy model
 
 router = APIRouter(prefix="/api/reports", tags=["Reports"])
 
-# --- quiz sqlite (same as quiz.py) ---
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # backend/app
-DB_PATH = os.path.join(BASE_DIR, "health.db")
-
-def quiz_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 @router.get("/summary")
 def reports_summary(user=Depends(get_current_user), db: Session = Depends(get_db)):
     email = getattr(user, "email", None) or getattr(user, "username", None) or "unknown"
     role = getattr(user, "role", "USER")
 
-    conn = quiz_conn()
-    cur = conn.cursor()
+    # -------------------------
+    # ✅ QUIZ STATS (Postgres)
+    # -------------------------
+    q = db.query(QuizScore)
 
-    # ✅ ADMIN -> all users
-    if role == "ADMIN":
-        cur.execute("SELECT COUNT(*) as c FROM quiz_scores")
-        quiz_attempts = cur.fetchone()["c"]
+    if role != "ADMIN":
+        q = q.filter(QuizScore.user_email == email)
 
-        cur.execute("SELECT AVG(CAST(score as float) / NULLIF(total,0)) as avgp FROM quiz_scores")
-        avgp = cur.fetchone()["avgp"]
+    quiz_attempts = q.count()
 
-        cur.execute("""
-            SELECT score, total, created_at
-            FROM quiz_scores
-            ORDER BY id DESC
-            LIMIT 10
-        """)
-        last10 = cur.fetchall()
-
-    # ✅ USER -> only own
-    else:
-        cur.execute("SELECT COUNT(*) as c FROM quiz_scores WHERE user_email=?", (email,))
-        quiz_attempts = cur.fetchone()["c"]
-
-        cur.execute("SELECT AVG(CAST(score as float) / NULLIF(total,0)) as avgp FROM quiz_scores WHERE user_email=?", (email,))
-        avgp = cur.fetchone()["avgp"]
-
-        cur.execute("""
-            SELECT score, total, created_at
-            FROM quiz_scores
-            WHERE user_email=?
-            ORDER BY id DESC
-            LIMIT 10
-        """, (email,))
-        last10 = cur.fetchall()
-
-    conn.close()
-
+    # average percent = avg(score/total) * 100
+    avgp = (
+        q.with_entities(func.avg(cast(QuizScore.score, Float) / func.nullif(QuizScore.total, 0)))
+        .scalar()
+    )
     avg_percent = round(((avgp or 0) * 100), 2)
+
+    # last 10 attempts
+    last10 = (
+        q.order_by(QuizScore.id.desc())
+        .limit(10)
+        .all()
+    )
 
     quiz_last10 = []
     for r in reversed(last10):
-        total = r["total"] or 0
-        pct = (r["score"] / total * 100) if total else 0
+        total = r.total or 0
+        pct = (r.score / total * 100) if total else 0
         quiz_last10.append({
-            "date": r["created_at"],
-            "score": r["score"],
+            "date": r.created_at.isoformat() if r.created_at else None,
+            "score": r.score,
             "total": total,
             "percent": round(pct, 2),
         })
 
-    # ---- chat stats (keep your existing code below unchanged) ----
-    ...
-
-
-    # -------- Chat stats from SQLAlchemy --------
-    total_chats = db.query(Chat).filter(Chat.user_id == user.id).count()
-    total_msgs = (
-        db.query(Message)
-        .join(Chat, Chat.id == Message.chat_id)
-        .filter(Chat.user_id == user.id)
-        .count()
-    )
+    # -------------------------
+    # ✅ CHAT STATS (SQLAlchemy)
+    # -------------------------
+    # Admin can see overall chat totals (optional)
+    if role == "ADMIN":
+        total_chats = db.query(Chat).count()
+        total_msgs = db.query(Message).count()
+    else:
+        total_chats = db.query(Chat).filter(Chat.user_id == user.id).count()
+        total_msgs = (
+            db.query(Message)
+            .join(Chat, Chat.id == Message.chat_id)
+            .filter(Chat.user_id == user.id)
+            .count()
+        )
 
     # messages per day (last 30 days)
     since = datetime.utcnow() - timedelta(days=30)
-    msgs = (
-        db.query(Message.created_at)
-        .join(Chat, Chat.id == Message.chat_id)
-        .filter(Chat.user_id == user.id, Message.created_at >= since)
-        .all()
-    )
+
+    if role == "ADMIN":
+        msgs = db.query(Message.created_at).filter(Message.created_at >= since).all()
+    else:
+        msgs = (
+            db.query(Message.created_at)
+            .join(Chat, Chat.id == Message.chat_id)
+            .filter(Chat.user_id == user.id, Message.created_at >= since)
+            .all()
+        )
 
     per_day = {}
     for (dt,) in msgs:
@@ -102,18 +86,22 @@ def reports_summary(user=Depends(get_current_user), db: Session = Depends(get_db
         per_day[key] = per_day.get(key, 0) + 1
 
     # user vs assistant ratio
-    user_count = (
-        db.query(Message)
-        .join(Chat, Chat.id == Message.chat_id)
-        .filter(Chat.user_id == user.id, Message.role == "user")
-        .count()
-    )
-    assistant_count = (
-        db.query(Message)
-        .join(Chat, Chat.id == Message.chat_id)
-        .filter(Chat.user_id == user.id, Message.role == "assistant")
-        .count()
-    )
+    if role == "ADMIN":
+        user_count = db.query(Message).filter(Message.role == "user").count()
+        assistant_count = db.query(Message).filter(Message.role == "assistant").count()
+    else:
+        user_count = (
+            db.query(Message)
+            .join(Chat, Chat.id == Message.chat_id)
+            .filter(Chat.user_id == user.id, Message.role == "user")
+            .count()
+        )
+        assistant_count = (
+            db.query(Message)
+            .join(Chat, Chat.id == Message.chat_id)
+            .filter(Chat.user_id == user.id, Message.role == "assistant")
+            .count()
+        )
 
     return {
         "kpis": {
@@ -126,7 +114,7 @@ def reports_summary(user=Depends(get_current_user), db: Session = Depends(get_db
         "messages_per_day": per_day,
         "role_ratio": {"user": user_count, "assistant": assistant_count}
     }
-import json
+
 
 @router.get("/ml-metrics")
 def ml_metrics(user=Depends(get_current_user)):

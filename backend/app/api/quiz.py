@@ -1,35 +1,16 @@
 # backend/app/api/quiz.py
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
-import sqlite3
-import os
+from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
 from app.auth import get_current_user
+from app.database import get_db
+from app.models import QuizScore
 
 router = APIRouter(prefix="/api/quiz", tags=["Quiz"])
-
-# ✅ DB file
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # backend/app
-DB_PATH = os.path.join(BASE_DIR, "health.db")
-
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS quiz_scores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_email TEXT,
-            score INTEGER,
-            total INTEGER,
-            created_at TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
 
 
 class QuizSaveIn(BaseModel):
@@ -38,58 +19,69 @@ class QuizSaveIn(BaseModel):
 
 
 @router.post("/save")
-def save_quiz_score(body: QuizSaveIn, user=Depends(get_current_user)) -> Dict[str, Any]:
-    init_db()
+def save_quiz_score(
+    body: QuizSaveIn,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    # validate
+    if body.total <= 0:
+        raise HTTPException(status_code=400, detail="Total must be > 0")
+    if body.score < 0 or body.score > body.total:
+        raise HTTPException(status_code=400, detail="Invalid score")
 
-    # user object shape can differ; handle both
+    # user object safe
     if isinstance(user, dict):
         email = user.get("email") or user.get("username") or "unknown"
-        role = user.get("role", "USER")
     else:
         email = getattr(user, "email", None) or getattr(user, "username", None) or "unknown"
-        role = getattr(user, "role", "USER")
 
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO quiz_scores (user_email, score, total, created_at) VALUES (?,?,?,?)",
-        (
-            email,
-            int(body.score),
-            int(body.total),
-            datetime.now(timezone.utc).isoformat(),  # ✅ timezone-aware UTC
-        )
+    row = QuizScore(
+        user_email=email,
+        score=int(body.score),
+        total=int(body.total),
+        created_at=datetime.now(timezone.utc),
     )
-    conn.commit()
-    conn.close()
+    db.add(row)
+    db.commit()
 
     return {"message": "saved"}
 
 
 @router.get("/my-scores")
-def my_scores(user=Depends(get_current_user)):
-    init_db()
-
+def my_scores(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     # Get email safely
     email = getattr(user, "email", None) or getattr(user, "username", "unknown")
     role = getattr(user, "role", "USER")
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
+    q = db.query(QuizScore)
 
     # ADMIN → all quiz history
+    if role != "ADMIN":
+        q = q.filter(QuizScore.user_email == email)
+
+    rows = q.order_by(QuizScore.id.desc()).limit(500).all()
+
+    # response format match your frontend
     if role == "ADMIN":
-        cur.execute(
-            "SELECT user_email, score, total, created_at FROM quiz_scores ORDER BY id DESC"
-        )
-    else:
-        cur.execute(
-            "SELECT score, total, created_at FROM quiz_scores WHERE user_email=? ORDER BY id DESC",
-            (email,)
-        )
+        return [
+            {
+                "user_email": r.user_email,
+                "score": r.score,
+                "total": r.total,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ]
 
-    rows = cur.fetchall()
-    conn.close()
-
-    return [dict(r) for r in rows]
+    return [
+        {
+            "score": r.score,
+            "total": r.total,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]

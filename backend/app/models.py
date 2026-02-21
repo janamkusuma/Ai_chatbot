@@ -2,10 +2,10 @@
 
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean
 from sqlalchemy.orm import relationship
-from datetime import datetime
+#from datetime import datetime
 from sqlalchemy.sql import func
 from app.database import Base
-
+from datetime import datetime, timezone
 
 class User(Base):
     __tablename__ = "users"
@@ -83,10 +83,23 @@ class FAQ(Base):
     answer = Column(Text)
 class Feedback(Base):
     __tablename__ = "feedback"
-    id = Column(Integer, primary_key=True)
-    email = Column(String(150))
-    message = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_email = Column(String(150), index=True, nullable=False)
+    rating = Column(Integer, nullable=False)
+    category = Column(String(50), default="general")
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class QuizScore(Base):
+    __tablename__ = "quiz_scores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_email = Column(String(150), index=True, nullable=False)
+    score = Column(Integer, nullable=False)
+    total = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class PasswordReset(Base):
     __tablename__ = "password_resets"
