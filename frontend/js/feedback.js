@@ -1,6 +1,9 @@
 import { API_BASE } from "./api.js";
 
-const token = localStorage.getItem("token");
+const token =
+  localStorage.getItem("token") ||
+  localStorage.getItem("access_token");
+
 if (!token) location.href = "login.html";
 
 const headers = {
