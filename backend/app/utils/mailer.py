@@ -5,16 +5,25 @@ RESEND_URL = "https://api.resend.com/emails"
 
 def send_email(to_email: str, subject: str, body_text: str):
     api_key = os.getenv("RESEND_API_KEY")
-    from_addr = os.getenv("RESEND_FROM", "HealthBot AI <onboarding@resend.dev>")
+    # ✅ keep this as ONLY email, not "Name <email>"
+    from_email = os.getenv("RESEND_FROM", "onboarding@resend.dev")
 
     if not api_key:
         raise RuntimeError("RESEND_API_KEY not set")
 
+    to_email = (to_email or "").strip()
+    if not to_email:
+        raise RuntimeError("send_email(): to_email is empty")
+
     payload = {
-        "from": from_addr if "<" in from_addr else f"HealthBot AI <{from_addr}>",
+        # ✅ Resend requires from in "Name <email>" format (we build it here)
+        "from": f"HealthBot AI <{from_email}>",
+        "to": [to_email],          # ✅ MUST be list
+        "subject": subject,
+        "text": body_text,
     }
 
-    response = requests.post(
+    r = requests.post(
         RESEND_URL,
         headers={
             "Authorization": f"Bearer {api_key}",
@@ -24,5 +33,7 @@ def send_email(to_email: str, subject: str, body_text: str):
         timeout=20,
     )
 
-    if response.status_code not in (200, 201):
-        raise RuntimeError(f"Resend error {response.status_code}: {response.text}")
+    if r.status_code not in (200, 201):
+        raise RuntimeError(f"Resend error {r.status_code}: {r.text}")
+
+    return r.json()
