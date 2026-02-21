@@ -73,7 +73,7 @@ function initDropdown() {
 function requireLogin() {
   const token = getToken();
   if (!token) {
-    window.location.href = "/frontend/login.html";
+    window.location.href = "/login.html";
     return false;
   }
 
@@ -81,7 +81,7 @@ function requireLogin() {
   if (!user) {
     localStorage.removeItem("token");
     localStorage.removeItem("access_token");
-    window.location.href = "/frontend/login.html";
+    window.location.href = "/login.html";
     return false;
   }
 
@@ -90,25 +90,25 @@ function requireLogin() {
 
 // Buttons
 document.getElementById("btnSignIn")?.addEventListener("click", () => {
-  window.location.href = "/frontend/login.html";
+  window.location.href = "/login.html";
 });
 
 document.getElementById("btnSignUp")?.addEventListener("click", () => {
-  window.location.href = "/frontend/signup.html";
+  window.location.href = "/signup.html";
 });
 
 document.getElementById("logoutBtn")?.addEventListener("click", () => {
   localStorage.removeItem("token");
   localStorage.removeItem("access_token");
-  window.location.href = "/frontend/login.html";
+  window.location.href = "/login.html";
 });
 
 document.getElementById("startChatBtn")?.addEventListener("click", () => {
-  if (requireLogin()) window.location.href = "/frontend/chatbot.html";
+  if (requireLogin()) window.location.href = "/chatbot.html";
 });
 
 document.getElementById("ctaChatBtn")?.addEventListener("click", () => {
-  if (requireLogin()) window.location.href = "/frontend/chatbot.html";
+  if (requireLogin()) window.location.href = "/chatbot.html";
 });
 
 // On load
