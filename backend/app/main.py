@@ -92,6 +92,14 @@ safe_migrations_and_promote_admin()
 # ✅ CREATE APP FIRST
 app = FastAPI(title="AI Health Assistant API")
 
+# ✅ REQUIRED for Google OAuth (Authlib uses session for state)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.JWT_SECRET,
+    same_site="none",
+    https_only=True,
+)
+
 # ✅ CORS
 app.add_middleware(
     CORSMiddleware,
@@ -108,13 +116,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ REQUIRED for Google OAuth (Authlib uses session for state)
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.JWT_SECRET,
-    same_site="none",
-    https_only=True,
-)
+
 
 # ✅ INCLUDE ROUTERS AFTER app CREATED
 app.include_router(auth_router)
