@@ -94,6 +94,35 @@ def change_role(user_id: int, db: Session = Depends(get_db), admin: User = Depen
 
 
 # -----------------------
+# Delete User
+# -----------------------
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # don't allow deleting self
+    if user.id == admin.id:
+        raise HTTPException(status_code=400, detail="You cannot delete your own account")
+
+    # optional safety: don't delete other admins
+    if user.role == "ADMIN":
+        raise HTTPException(status_code=400, detail="Cannot delete an admin user")
+
+    # IMPORTANT: delete dependent data first (if you have FK constraints)
+    # Adjust filters based on your actual schema columns.
+    db.query(Message).filter(Message.user_id == user_id).delete(synchronize_session=False)
+    db.query(Chat).filter(Chat.user_id == user_id).delete(synchronize_session=False)
+    # If Feedback/QuizScore tables link to user_id, delete them too:
+    # db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)
+    # db.query(QuizScore).filter(QuizScore.user_id == user_id).delete(synchronize_session=False)
+
+    db.delete(user)
+    db.commit()
+    return {"ok": True, "message": "User deleted"}
+
+# -----------------------
 # Dashboard Stats
 # -----------------------
 @router.get("/stats")

@@ -173,6 +173,7 @@ function renderUsers(users) {
           <button class="btn btn-small ${u.is_active ? "btn-danger" : "btn-primary"}" data-action="block" data-id="${u.id}">
             ${blockBtnText}
           </button>
+          <button class="btn btn-small btn-danger" data-action="delete" data-id="${u.id}">Delete</button>
         </td>
       </tr>
     `;
@@ -304,6 +305,10 @@ if (usersBody) {
     try {
       if (action === "block") await apiPatch(`/api/admin/users/${id}/block`);
       if (action === "role")  await apiPatch(`/api/admin/users/${id}/role`);
+      if (action === "delete") {
+        if (!confirm("Delete this user permanently?")) return;
+        await apiDelete(`/api/admin/users/${id}`);
+      }
       cachedUsers = await apiGet("/api/admin/users");
       renderUsers(cachedUsers);
       setMsg("Updated ✅", "ok");
