@@ -100,19 +100,27 @@ app.add_middleware(
     https_only=True,
 )
 
-# ✅ CORS
+# ✅ CORS (FINAL)
+origins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "https://aihealth-assistant-finalbot.vercel.app",
+    "https://ai-chatbot-five-sandy-46.vercel.app",
+]
+
+fb = getattr(settings, "FRONTEND_BASE_URL", None)
+if fb:
+    origins.append(fb)
+
+# remove duplicates + empty
+origins = list(dict.fromkeys([o for o in origins if o]))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(set([
-        "http://127.0.0.1:5500",
-        "http://localhost:5500",
-        "https://aihealth-assistant-finalbot.vercel.app",
-        "https://ai-chatbot-five-sandy-46.vercel.app",
-        settings.FRONTEND_BASE_URL,
-    ])),
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
-    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_headers=["*"],
 )
 
