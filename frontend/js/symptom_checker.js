@@ -8,6 +8,8 @@ const headers = {
   Authorization: "Bearer " + token
 };
 
+
+
 document.getElementById("logoutBtn").onclick = () => {
   localStorage.removeItem("token");
   location.href = "login.html";
@@ -36,12 +38,35 @@ const SYMPTOMS = [
   "Sleepiness"
 ];
 
+const DISEASE_HOSPITAL_MAP = {
+  "Influenza (Flu)": "general hospital",
+  "COVID-19": "hospital",
+  "Common Cold": "clinic",
+  "Pneumonia": "pulmonologist hospital",
+  "Bronchitis": "chest specialist hospital",
+  "Food Poisoning": "gastroenterology hospital",
+  "Hypertension": "cardiology hospital",
+  "Diabetes": "diabetes clinic",
+  "Dengue": "multi speciality hospital"
+};
+
 const chipsEl = document.getElementById("chips");
 const outEl = document.getElementById("out");
 const loadingEl = document.getElementById("loading");
 const analyzeBtn = document.getElementById("analyzeBtn");
 
 const selected = new Set();
+async function loadGoogleMaps() {
+  const res = await fetch(`${API_BASE}/api/config/maps-key`);
+  const data = await res.json();
+
+  const script = document.createElement("script");
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${data.key}&libraries=places,marker&callback=initMap`;
+  script.async = true;
+  script.defer = true;
+
+  document.head.appendChild(script);
+}
 
 function renderChips() {
   chipsEl.innerHTML = "";
@@ -231,7 +256,114 @@ async function analyze() {
   `;
 
   outEl.innerHTML = mlBlock + cards + remedies + doctor;
+  // ✅ CHECK HIGH RISK
+  
+  const topDisease = data.results?.[0]?.name;
+  const hospitalType = DISEASE_HOSPITAL_MAP[topDisease] || "hospital";
+
+  // ✅ Determine which diseases are high or medium risk
+  const riskyDiseases = (data.results || []).filter(r => r.risk === "High" || r.risk === "Medium");
+
+  if (riskyDiseases.length) {
+    const section = document.getElementById("hospitalSection");
+    section.style.display = "block";
+
+    // Load hospitals for each risky disease
+    riskyDiseases.forEach((disease, index) => {
+      const hospitalType = DISEASE_HOSPITAL_MAP[disease.name] || "hospital";
+
+      // Use a small delay per disease to avoid race issues
+      setTimeout(() => {
+        loadHospitals(hospitalType, disease.name, disease.risk);
+      }, index * 300);
+    });
+  } else {
+    document.getElementById("hospitalSection").style.display = "none";
+  }
+}
+let map; // global map instance
+
+function initMap(userLocation) {
+  if (!map) {
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: userLocation,
+      zoom: 14,
+      mapId: "effd4ed6a8e9b2918636ffe0"
+    });
+
+    // mark user location
+    new google.maps.marker.AdvancedMarkerElement({
+      map,
+      position: userLocation,
+      title: "You are here"
+    });
+  } else {
+    map.setCenter(userLocation);
+  }
 }
 
+function loadHospitals(type, diseaseName = "", risk = "") {
+  if (typeof google === "undefined") {
+    alert("Map not loaded yet, refresh page");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const userLocation = { lat, lng };
+
+      // initialize or center map
+      initMap(userLocation);
+
+      const service = new google.maps.places.PlacesService(map);
+      service.nearbySearch(
+        {
+          location: userLocation,
+          radius: 5000,
+          keyword: type
+        },
+        (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            let listHTML = `<h4>${diseaseName} (${risk} Risk)</h4>`;
+
+            results.forEach(place => {
+              const marker = new google.maps.marker.AdvancedMarkerElement({
+                map,
+                position: place.geometry.location,
+                title: place.name
+              });
+
+              const address = place.vicinity || "Address not available";
+              const rating = place.rating ? `⭐ ${place.rating} (${place.user_ratings_total || 0} reviews)` : "";
+              const openStatus = place.opening_hours?.open_now ? "🟢 Open now" : "🔴 Closed";
+
+              // marker click opens Google Maps directions
+              const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination=${encodeURIComponent(place.name + " " + address)}`;
+              marker.addListener("click", () => window.open(mapsUrl, "_blank"));
+
+              // also show in the list
+              listHTML += `
+                <div style="margin-bottom:8px;">
+                  <p>🏥 <b><a href="${mapsUrl}" target="_blank">${place.name}</a></b></p>
+                  <p>📍 ${address}</p>
+                  <p>${rating} ${openStatus}</p>
+                </div>
+              `;
+            });
+
+            const container = document.getElementById("hospitalList");
+            container.innerHTML += listHTML;
+          }
+        }
+      );
+    },
+    () => {
+      alert("Please allow location access");
+    }
+  );
+}
 analyzeBtn.onclick = analyze;
 renderChips();
+loadGoogleMaps();

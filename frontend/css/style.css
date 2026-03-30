@@ -460,3 +460,46 @@ body { font-family: Arial; background:#eef5ff; margin:0; }
   text-align: center;
 }
 .tbl thead th { background: rgba(0, 128, 128, 0.10); }
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.category-card {
+  background: #f5f9ff;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.category-card span {
+  font-weight: 700;
+}
+
+.category-card button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  background: #1d76d2;
+  color: white;
+  cursor: pointer;
+}
+
+.article-btn {
+  display: inline-block;
+  padding: 10px 15px;
+  background: #4CAF50;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.article-btn:hover {
+  background: #45a049;
+}

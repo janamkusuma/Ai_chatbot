@@ -13,22 +13,22 @@ document.getElementById("logoutBtn").onclick = () => {
   localStorage.removeItem("token");
   location.href = "login.html";
 };
-
+let backState = "quiz"; 
+// quiz → categories → hom
 // ✅ You can add more questions here (10 shown)
-const QUESTIONS = [
-  { q: "Strongest bone?", options: ["Jaw", "Femur", "Skull", "Rib"], ans: 1 },
-  { q: "Normal body temperature (approx)?", options: ["35°C", "37°C", "39°C", "41°C"], ans: 1 },
-  { q: "ORS is mainly used for?", options: ["Pain relief", "Rehydration", "Sleep", "Allergy"], ans: 1 },
-  { q: "Which organ pumps blood?", options: ["Lungs", "Kidney", "Heart", "Liver"], ans: 2 },
-  { q: "Vitamin from sunlight?", options: ["Vit A", "Vit B12", "Vit C", "Vit D"], ans: 3 },
-  { q: "Dengue spreads by?", options: ["Housefly", "Mosquito", "Water", "Food"], ans: 1 },
-  { q: "High BP is called?", options: ["Hypotension", "Hypertension", "Diabetes", "Asthma"], ans: 1 },
-  { q: "Which is a respiratory disease?", options: ["Pneumonia", "Gastritis", "Diabetes", "Ulcer"], ans: 0 },
-  { q: "Main symptom of dehydration?", options: ["Wet skin", "Dark urine", "High hair growth", "Blue nails"], ans: 1 },
-  { q: "Handwashing helps prevent?", options: ["Infections", "Broken bones", "All cancers", "None"], ans: 0 }
-];
+let QUIZ = [];
+let selectedCategory = "";
 
-const beginBtn = document.getElementById("beginBtn");
+async function loadQuiz() {
+  const res = await fetch(`${API_BASE}/api/quiz/questions?category=${encodeURIComponent(selectedCategory)}`, {
+    headers: headersAuth
+  });
+
+  const data = await res.json();
+  QUIZ = data.questions || [];
+}
+
+
 const restartBtn = document.getElementById("restartBtn");
 const nextBtn = document.getElementById("nextBtn");
 
@@ -59,7 +59,7 @@ function shuffle(arr) {
 }
 
 // If you want random order each time:
-const QUIZ = shuffle(QUESTIONS);
+
 
 function startTimer() {
   clearInterval(t);
@@ -79,6 +79,10 @@ function startTimer() {
 }
 
 function renderQuestion() {
+  if (!QUIZ[idx]) {
+    showResult();
+    return;
+  }
   locked = false;
   nextBtn.disabled = true;
   statusEl.textContent = "";
@@ -87,7 +91,7 @@ function renderQuestion() {
   const item = QUIZ[idx];
 
   qnoEl.textContent = `Q${idx + 1}/${total}`;
-  questionEl.textContent = item.q;
+  questionEl.textContent = item.question;
 
   optionsEl.innerHTML = "";
   const letters = ["A", "B", "C", "D"];
@@ -117,7 +121,7 @@ function lockOptions(selectedIndex) {
   clearInterval(t);
 
   const item = QUIZ[idx];
-  const correct = item.ans;
+  const correct = item.answer;
 
   const btns = [...optionsEl.querySelectorAll(".quiz-opt")];
 
@@ -167,9 +171,16 @@ function showResult() {
   saveScore();
 }
 
-function begin() {
+async function begin() {
   idx = 0;
   score = 0;
+
+  await loadQuiz(); // 🔥 important
+  if (QUIZ.length === 0) {
+    alert("No questions found for this category");
+    return;
+  }
+
 
   quizStart.style.display = "none";
   resultBox.style.display = "none";
@@ -178,8 +189,12 @@ function begin() {
   renderQuestion();
 }
 
+
+restartBtn.onclick = () => location.reload();
+
 nextBtn.onclick = () => {
   idx++;
+
   if (idx >= QUIZ.length) {
     showResult();
   } else {
@@ -187,5 +202,60 @@ nextBtn.onclick = () => {
   }
 };
 
-beginBtn.onclick = begin;
-restartBtn.onclick = () => location.reload();
+window.startQuiz = async function(category) {
+  selectedCategory = category;
+
+  idx = 0;
+  score = 0;
+
+  await loadQuiz();
+
+  if (QUIZ.length === 0) {
+    alert("No questions found");
+    return;
+  }
+
+  quizStart.style.display = "none";
+  resultBox.style.display = "none";
+  quizBox.style.display = "block";
+
+  renderQuestion();
+};
+
+document.querySelectorAll(".start-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const category = btn.getAttribute("data-category");
+
+    selectedCategory = category;
+    idx = 0;
+    score = 0;
+
+    backState = "quiz"; // 🔥 IMPORTANT
+
+    await loadQuiz();
+
+    if (QUIZ.length === 0) {
+      alert("No questions found");
+      return;
+    }
+
+    quizStart.style.display = "none";
+    resultBox.style.display = "none";
+    quizBox.style.display = "block";
+
+    renderQuestion();
+  });
+});
+window.goBack = function () {
+  if (backState === "quiz") {
+    // first click → categories
+    quizBox.style.display = "none";
+    resultBox.style.display = "none";
+    quizStart.style.display = "block";
+
+    backState = "categories";
+  } else {
+    // second click → home page
+    window.location.href = "index.html";
+  }
+};

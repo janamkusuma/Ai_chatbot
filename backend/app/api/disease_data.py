@@ -16,6 +16,7 @@ DISEASES = [
             {"name": "Paracetamol", "purpose": "Fever / body pain", "dosage": "500mg every 6–8 hrs (max 3g/day)"},
             {"name": "Oseltamivir", "purpose": "Antiviral", "dosage": "75mg twice daily (doctor advice)"},
         ],
+        "article_link": "https://www.cdc.gov/flu/about/index.html",
     },
     {
         "id": 2,
@@ -31,6 +32,7 @@ DISEASES = [
             {"name": "Paracetamol", "purpose": "Fever", "dosage": "500mg every 6–8 hrs (max 3g/day)"},
             {"name": "Avoid Ibuprofen/Aspirin", "purpose": "Bleeding risk", "dosage": "Avoid unless doctor says"},
         ],
+        "article_link": "https://www.who.int/news-room/fact-sheets/detail/dengue-and-severe-dengue",
     },
     {
         "id": 3,
@@ -45,6 +47,7 @@ DISEASES = [
         "medicines": [
             {"name": "Paracetamol", "purpose": "Fever / body pain", "dosage": "500mg every 6–8 hrs (max 3g/day)"},
         ],
+        "article_link": "https://www.who.int/health-topics/coronavirus#tab=tab_1",
     },
     {
         "id": 4,
@@ -59,6 +62,7 @@ DISEASES = [
         "medicines": [
             {"name": "Antimalarials", "purpose": "Treatment", "dosage": "Doctor prescription only"},
         ],
+        "article_link": "https://www.who.int/news-room/fact-sheets/detail/malaria",
     },
 
     # ---------------- Respiratory ----------------
@@ -75,6 +79,7 @@ DISEASES = [
         "medicines": [
             {"name": "Cough syrup", "purpose": "Symptom relief", "dosage": "As per label / doctor advice"},
         ],
+        "article_link": "https://my.clevelandclinic.org/health/diseases/3993-bronchitis",
     },
     {
         "id": 11,
@@ -89,6 +94,7 @@ DISEASES = [
         "medicines": [
             {"name": "Antibiotics", "purpose": "Treatment (if bacterial)", "dosage": "Doctor prescription only"},
         ],
+        "article_link": "https://my.clevelandclinic.org/health/diseases/4471-pneumonia",
     },
     {
         "id": 12,
@@ -103,6 +109,7 @@ DISEASES = [
         "medicines": [
             {"name": "Saline spray", "purpose": "Nasal relief", "dosage": "2–3 sprays/day (as needed)"},
         ],
+        "article_link": "https://medlineplus.gov/ency/article/000647.htm",
     },
 
     # ---------------- Digestive ----------------
@@ -119,6 +126,7 @@ DISEASES = [
         "medicines": [
             {"name": "ORS", "purpose": "Rehydration", "dosage": "Small sips often (after each loose stool)"},
         ],
+        "article_link": "https://medlineplus.gov/ency/article/001652.htm",
     },
     {
         "id": 21,
@@ -133,6 +141,7 @@ DISEASES = [
         "medicines": [
             {"name": "Antacid", "purpose": "Acidity relief", "dosage": "After meals (as per label)"},
         ],
+        "article_link": "https://medlineplus.gov/ency/article/001150.htm",
     },
 
     # ---------------- Chronic ----------------
@@ -149,6 +158,7 @@ DISEASES = [
         "medicines": [
             {"name": "Amlodipine", "purpose": "BP control", "dosage": "5mg once daily (doctor advice)"},
         ],
+        "article_link": "https://www.who.int/news-room/fact-sheets/detail/hypertension",
     },
     {
         "id": 31,
@@ -163,6 +173,7 @@ DISEASES = [
         "medicines": [
             {"name": "Metformin", "purpose": "Sugar control", "dosage": "500mg once/twice daily (doctor advice)"},
         ],
+        "article_link": "https://www.who.int/news-room/fact-sheets/detail/diabetes",
     },
     # ---------------- Heart Diseases ----------------
 {
@@ -176,6 +187,7 @@ DISEASES = [
     "precautions": ["Healthy diet", "Exercise"],
     "prevention": ["Avoid smoking", "Regular checkups"],
     "medicines": [{"name": "Aspirin", "purpose": "Heart protection", "dosage": "75–100 mg once daily (after food)"}],
+    "article_link": "https://medlineplus.gov/coronaryarterydisease.html",
 },
 {
     "id": 41,
@@ -188,6 +200,7 @@ DISEASES = [
     "precautions": ["Limit salt", "Rest"],
     "prevention": ["BP control", "Healthy lifestyle"],
     "medicines": [{"name": "Diuretics", "purpose": "Fluid removal", "dosage": "20–40 mg once daily (morning); may increase as prescribed"}],
+    "article_link": "https://en.wikipedia.org/wiki/Heart_failure",
 },
 
 # ---------------- Neurological ----------------
@@ -202,6 +215,7 @@ DISEASES = [
     "precautions": ["Avoid stress", "Rest"],
     "prevention": ["Sleep well"],
     "medicines": [{"name": "Ibuprofen", "purpose": "Pain relief", "dosage": "200–400 mg every 6–8 hrs as needed (max 1200 mg/day OTC)"}],
+    "article_link": "https://www.who.int/news-room/fact-sheets/detail/headache-disorders",
 },
 {
     "id": 51,
@@ -214,6 +228,7 @@ DISEASES = [
     "precautions": ["Avoid triggers"],
     "prevention": ["Medication adherence"],
     "medicines": [{"name": "Anti-epileptics", "purpose": "Seizure control", "dosage": "500 mg twice daily (start); adjust by doctor"}],
+    "article_link": "https://www.who.int/news-room/fact-sheets/detail/epilepsy",
 },
 
 # ---------------- Skin Diseases ----------------
@@ -228,6 +243,7 @@ DISEASES = [
     "precautions": ["Moisturize skin"],
     "prevention": ["Avoid allergens"],
     "medicines": [{"name": "Hydrocortisone", "purpose": "Skin relief", "dosage": "Apply thin layer 1–2 times/day for up to 7 days"}],
+    "article_link": "https://my.clevelandclinic.org/health/diseases/9998-eczema",
 },
 {
     "id": 61,
@@ -240,6 +256,7 @@ DISEASES = [
     "precautions": ["Moisturize"],
     "prevention": ["Stress control"],
     "medicines": [{"name": "Topical creams", "purpose": "Skin relief", "dosage": "Apply thin layer 1–2 times/day (as directed)"}],
+    "article_link": "https://www.psoriasis.org/about-psoriasis/#overview",
 },
 
 # ---------------- Kidney Diseases ----------------
@@ -254,6 +271,7 @@ DISEASES = [
     "precautions": ["Drink water"],
     "prevention": ["Hydration"],
     "medicines": [{"name": "Painkillers", "purpose": "Pain relief", "dosage": "50 mg twice daily after food (short term only)"}],
+    "article_link": "https://www.kidneyfund.org/all-about-kidneys/other-kidney-problems/kidney-stones",
 },
 {
     "id": 71,
@@ -266,6 +284,7 @@ DISEASES = [
     "precautions": ["Diet control"],
     "prevention": ["BP/sugar control"],
     "medicines": [{"name": "ACE inhibitors", "purpose": "Kidney protection", "dosage": "2.5–5 mg once daily (start); adjust by doctor"}],
+    "article_link": "https://www.sciencedirect.com/science/article/pii/S2214623724000255",
 },
 
 # ---------------- Liver Diseases ----------------
@@ -280,6 +299,7 @@ DISEASES = [
     "precautions": ["Avoid alcohol"],
     "prevention": ["Vaccination"],
     "medicines": [{"name": "Antivirals", "purpose": "Treatment", "dosage": "Depends on hepatitis type (B/C) – specialist prescription only"}],
+    "article_link": "https://my.clevelandclinic.org/health/diseases/hepatitis",
 },
 {
     "id": 81,
@@ -292,6 +312,7 @@ DISEASES = [
     "precautions": ["Exercise"],
     "prevention": ["Healthy diet"],
     "medicines": [{"name": "Lifestyle change", "purpose": "Management", "dosage": "30–45 min brisk walk daily + calorie control"}],
+    "article_link": "https://medlineplus.gov/fattyliverdisease.html",
 },
 
 # ---------------- Hormonal Disorders ----------------
@@ -306,6 +327,7 @@ DISEASES = [
     "precautions": ["Regular checkups"],
     "prevention": ["Medication adherence"],
     "medicines": [{"name": "Thyroxine", "purpose": "Hormone replacement", "dosage": "25–50 mcg once daily morning (empty stomach); adjust by TSH"}],
+    "article_link": "https://medlineplus.gov/ency/article/000353.htm",
 },
 {
     "id": 91,
@@ -318,6 +340,7 @@ DISEASES = [
     "precautions": ["Doctor follow-up"],
     "prevention": ["Regular tests"],
     "medicines": [{"name": "Antithyroid drugs", "purpose": "Hormone control", "dosage": "5–15 mg once daily (mild); adjust by doctor"}],
+    "article_link": "https://medlineplus.gov/ency/article/000356.htm",
 },
 
 # ---------------- Mental Health ----------------
@@ -332,6 +355,7 @@ DISEASES = [
     "precautions": ["Counselling"],
     "prevention": ["Stress management"],
     "medicines": [{"name": "SSRIs", "purpose": "Mood control", "dosage": "25–50 mg once daily (start); may increase by doctor"}],
+    "article_link": "https://www.who.int/news-room/fact-sheets/detail/depression",
 },
 {
     "id": 101,
@@ -344,5 +368,6 @@ DISEASES = [
     "precautions": ["Relaxation"],
     "prevention": ["Meditation"],
     "medicines": [{"name": "Anxiolytics", "purpose": "Anxiety relief", "dosage": "10–25 mg at night or 2–3 times/day as needed (drowsiness possible)"}],
+    "article_link": "https://www.who.int/news-room/fact-sheets/detail/anxiety-disorders",
 },
 ]

@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Health Quiz</title>
   <link rel="stylesheet" href="css/style.css" />
+  
 </head>
 <body>
   <header class="topbar">
-    <a class="btn" href="index.html">← Back</a>
+    <button class="btn" onclick="goBack()">← Back</button>
     <h2>Health Quiz</h2>
     <button class="btn danger" id="logoutBtn" type="button">Logout</button>
   </header>
@@ -16,15 +17,69 @@
   <main class="container">
     <div class="panel quiz-wrap">
       <div id="quizStart" class="quiz-start">
-        <h3>📘 Instructions</h3>
-        <ul class="quiz-ul">
-          <li>10 questions</li>
-          <li>15 seconds per question</li>
-          <li>Score saves automatically</li>
-        </ul>
-        <div class="quiz-actions">
-          <button class="btn primary" id="beginBtn">Begin Quiz</button>
-          <a class="btn" href="quiz_history.html">View History</a>
+        <h3>🧠 Select Quiz Category</h3>
+
+        <div class="category-grid">
+
+          <div class="category-card">
+            <span>Infectious Diseases</span>
+            <button class="start-btn" data-category="Infectious Diseases">Begin Quiz</button>
+          </div>
+
+          <div class="category-card">
+            <span>Respiratory Diseases</span>
+            <button class="start-btn" data-category="Respiratory Diseases">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Digestive Diseases</span>
+            <button class="start-btn" data-category="Digestive Diseases">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Chronic Diseases</span>
+            <button class="start-btn" data-category="Chronic Diseases">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Heart Diseases</span>
+            <button class="start-btn" data-category="Heart Diseases">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Neurological Disorders</span>
+            <button class="start-btn" data-category="Neurological Disorders">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Skin Diseases</span>
+            <button class="start-btn" data-category="Skin Diseases">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Kidney Diseases</span>
+            <button class="start-btn" data-category="Kidney Diseases">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Liver Diseases</span>
+            <button class="start-btn" data-category="Liver Diseases">Begin Quiz</button>
+            
+          </div>
+
+          <div class="category-card">
+            <span>Mental Health</span>
+            <button class="start-btn" data-category="Mental Health">Begin Quiz</button>
+            
+          </div>
+
         </div>
       </div>
 

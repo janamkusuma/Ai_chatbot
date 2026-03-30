@@ -17,6 +17,8 @@ from app.api.feedback import router as feedback_router
 from app.api.ml_prediction import router as ml_router
 from app.api.admin import router as admin_router
 
+from app.routers import maps_config
+
 # ✅ create tables
 Base.metadata.create_all(bind=engine)
 from sqlalchemy import text
@@ -139,6 +141,7 @@ app.include_router(feedback_router)
 app.include_router(ml_router)
 # app.include_router(faq_router)
 app.include_router(admin_router)
+app.include_router(maps_config.router)
 
 @app.get("/")
 def root():

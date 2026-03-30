@@ -82,6 +82,16 @@ async function load() {
           </table>
         </div>
       </div>
+      <div class="detail-section">
+        <h3>More Information</h3>
+        ${
+          d.article_link
+            ? `<a href="${d.article_link}" target="_blank" class="article-btn">
+                👉 Read Full Article
+              </a>`
+            : `<p>No article available</p>`
+        }
+      </div>
 
     </div>
   `;
