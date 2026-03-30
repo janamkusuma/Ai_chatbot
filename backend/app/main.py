@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import uvicorn
+
 
 from app.config import settings
 from app.database import Base, engine
@@ -146,3 +149,6 @@ app.include_router(maps_config.router)
 @app.get("/")
 def root():
     return {"message": "API running"}
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # Use $PORT on Render
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
